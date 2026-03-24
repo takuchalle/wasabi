@@ -145,8 +145,7 @@ const _: () = assert!(offset_of!(EfiBootServicesTable, exit_boot_services) == 23
 const _: () = assert!(offset_of!(EfiBootServicesTable, locate_protocol) == 320);
 
 impl EfiBootServicesTable {
-    pub fn get_memory_map(&self, map: &mut MemoryMapHolder) -> EfiStatus {
-        (self.get_memory_map)(
+    pub fn get_memory_map(&self, map: &mut MemoryMapHolder) -> EfiStatus { (self.get_memory_map)(
             &mut map.memory_map_size,
             map.memory_map_buffer.as_mut_ptr(),
             &mut map.map_key,
