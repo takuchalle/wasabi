@@ -71,6 +71,10 @@ impl EfiMemoryDescriptor {
     pub fn number_of_pages(&self) -> u64 {
         self.number_of_pages
     }
+
+    pub fn physical_start(&self) -> u64 {
+        self.physical_start
+    }
 }
 
 const MEMORY_MAP_BUFFER_SIZE: usize = 0x8000;
@@ -145,7 +149,8 @@ const _: () = assert!(offset_of!(EfiBootServicesTable, exit_boot_services) == 23
 const _: () = assert!(offset_of!(EfiBootServicesTable, locate_protocol) == 320);
 
 impl EfiBootServicesTable {
-    pub fn get_memory_map(&self, map: &mut MemoryMapHolder) -> EfiStatus { (self.get_memory_map)(
+    pub fn get_memory_map(&self, map: &mut MemoryMapHolder) -> EfiStatus {
+        (self.get_memory_map)(
             &mut map.memory_map_size,
             map.memory_map_buffer.as_mut_ptr(),
             &mut map.map_key,
