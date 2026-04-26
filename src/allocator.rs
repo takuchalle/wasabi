@@ -201,3 +201,32 @@ impl FirstFitAllocator {
         header.as_mut().unwrap().next_header = prev_last;
     }
 }
+
+#[test_case]
+fn round_up_to_nearest_pow2_tests() {
+    assert_eq!(round_up_to_nearest_pow2(0), Err("Out of range"));
+    assert_eq!(round_up_to_nearest_pow2(1), Ok(1));
+    assert_eq!(round_up_to_nearest_pow2(2), Ok(2));
+    assert_eq!(round_up_to_nearest_pow2(3), Ok(4));
+    assert_eq!(round_up_to_nearest_pow2(4), Ok(4));
+    assert_eq!(round_up_to_nearest_pow2(5), Ok(8));
+    assert_eq!(round_up_to_nearest_pow2(6), Ok(8));
+    assert_eq!(round_up_to_nearest_pow2(7), Ok(8));
+    assert_eq!(round_up_to_nearest_pow2(8), Ok(8));
+    assert_eq!(round_up_to_nearest_pow2(9), Ok(16));
+    assert_eq!(round_up_to_nearest_pow2(10), Ok(16));
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test_case]
+    fn malloc_iterate_free_and_alloc() {
+        use alloc::vec::Vec;
+        for i in 0..10000 {
+            let mut vec = Vec::new();
+            vec.resize(i, 10);
+        }
+    }
+}
