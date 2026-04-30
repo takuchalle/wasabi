@@ -1,6 +1,9 @@
 extern crate alloc;
 
 use crate::result::Result;
+use crate::uefi::EfiMemoryDescriptor;
+use crate::uefi::EfiMemoryType;
+use crate::uefi::MemoryMapHolder;
 use alloc::alloc::GlobalAlloc;
 use alloc::alloc::Layout;
 use alloc::boxed::Box;
@@ -11,10 +14,6 @@ use core::fmt;
 use core::mem::size_of;
 use core::ops::DerefMut;
 use core::ptr::null_mut;
-
-use crate::uefi::EfiMemoryDescriptor;
-use crate::uefi::EfiMemoryType;
-use crate::uefi::MemoryMapHolder;
 
 struct Header {
     next_header: Option<Box<Header>>,
@@ -202,21 +201,6 @@ impl FirstFitAllocator {
     }
 }
 
-#[test_case]
-fn round_up_to_nearest_pow2_tests() {
-    assert_eq!(round_up_to_nearest_pow2(0), Err("Out of range"));
-    assert_eq!(round_up_to_nearest_pow2(1), Ok(1));
-    assert_eq!(round_up_to_nearest_pow2(2), Ok(2));
-    assert_eq!(round_up_to_nearest_pow2(3), Ok(4));
-    assert_eq!(round_up_to_nearest_pow2(4), Ok(4));
-    assert_eq!(round_up_to_nearest_pow2(5), Ok(8));
-    assert_eq!(round_up_to_nearest_pow2(6), Ok(8));
-    assert_eq!(round_up_to_nearest_pow2(7), Ok(8));
-    assert_eq!(round_up_to_nearest_pow2(8), Ok(8));
-    assert_eq!(round_up_to_nearest_pow2(9), Ok(16));
-    assert_eq!(round_up_to_nearest_pow2(10), Ok(16));
-}
-
 #[cfg(test)]
 mod test {
     use super::*;
@@ -228,5 +212,48 @@ mod test {
             let mut vec = Vec::new();
             vec.resize(i, 10);
         }
+    }
+
+    #[test_case]
+    fn malloc_align() {
+        let mut pointers = [null_mut::<u8>(); 100];
+        for align in [1, 2, 4, 8, 16, 32, 4096] {
+            for e in pointers.iter_mut() {
+                *e = ALLOCATOR.alloc_with_option(
+                    Layout::from_size_align(1234, align).expect("Failed to create Layout"),
+                );
+                assert!(*e as usize != 0);
+                assert!((*e as usize) % align == 0);
+            }
+        }
+    }
+
+    #[test_case]
+    fn malloc_align_random_order() {
+        for align in [32, 4096, 8, 4, 2, 1] {
+            let mut pointers = [null_mut::<u8>(); 100];
+            for e in pointers.iter_mut() {
+                *e = ALLOCATOR.alloc_with_option(
+                    Layout::from_size_align(1234, align).expect("Failed to create Layout"),
+                );
+                assert!(*e as usize != 0);
+                assert!((*e as usize) % align == 0);
+            }
+        }
+    }
+
+    #[test_case]
+    fn round_up_to_nearest_pow2_tests() {
+        assert_eq!(round_up_to_nearest_pow2(0), Err("Out of range"));
+        assert_eq!(round_up_to_nearest_pow2(1), Ok(1));
+        assert_eq!(round_up_to_nearest_pow2(2), Ok(2));
+        assert_eq!(round_up_to_nearest_pow2(3), Ok(4));
+        assert_eq!(round_up_to_nearest_pow2(4), Ok(4));
+        assert_eq!(round_up_to_nearest_pow2(5), Ok(8));
+        assert_eq!(round_up_to_nearest_pow2(6), Ok(8));
+        assert_eq!(round_up_to_nearest_pow2(7), Ok(8));
+        assert_eq!(round_up_to_nearest_pow2(8), Ok(8));
+        assert_eq!(round_up_to_nearest_pow2(9), Ok(16));
+        assert_eq!(round_up_to_nearest_pow2(10), Ok(16));
     }
 }
